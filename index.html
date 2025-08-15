@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Morse Online</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+  #indicator {
+    width: 100px; height: 100px;
+    margin: 20px auto;
+    background: gray; border-radius: 50%;
+    transition: background 0.1s;
+  }
+  button {
+    font-size: 20px; padding: 15px 30px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <h1>Morse Online</h1>
+  <div id="indicator"></div>
+  <button id="morseBtn">Enviar Sinal</button>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const btn = document.getElementById("morseBtn");
+    const indicator = document.getElementById("indicator");
+
+    // Ao pressionar o botão
+    btn.addEventListener("mousedown", () => {
+      socket.emit("morse-press");
+    });
+
+    // Ao soltar o botão
+    btn.addEventListener("mouseup", () => {
+      socket.emit("morse-release");
+    });
+
+    // Toque na tela (mobile)
+    btn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      socket.emit("morse-press");
+    });
+    btn.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      socket.emit("morse-release");
+    });
+
+    // Receber evento para acender indicador
+    socket.on("morse-on", () => {
+      indicator.style.background = "red";
+    });
+
+    // Receber evento para apagar indicador
+    socket.on("morse-off", () => {
+      indicator.style.background = "gray";
+    });
+  </script>
+</body>
+</html>
