@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Morse Online</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    #indicator {
+      width: 100px;
+      height: 100px;
+      margin: 20px auto;
+      background: gray;
+      border-radius: 50%;
+      transition: background 0.1s;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 15px 30px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Morse Online</h1>
+  <div id="indicator"></div>
+  <button id="morseBtn">Enviar Sinal</button>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const btn = document.getElementById("morseBtn");
+    const indicator = document.getElementById("indicator");
+
+    let audioCtx = null;
+    let oscillator = null;
+
+    function startTone() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      oscillator = audioCtx.createOscillator();
+      oscillator.type = "sine"; // tipo de onda
+      oscillator.frequency.setValueAtTime(600, audioCtx.currentTime); // frequência em Hz
+      oscillator.connect(audioCtx.destination);
+      oscillator.start();
+    }
+
+    function stopTone() {
+      if (oscillator) {
+        oscillator.stop();
+        oscillator.disconnect();
+        oscillator = null;
+      }
+    }
+
+    // Botão - enviar sinal
+    btn.addEventListener("mousedown", () => {
+      socket.emit("morse-press");
+    });
+
+    btn.addEventListener("mouseup", () => {
+      socket.emit("morse-release");
+    });
+
+    // Mobile
+    btn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      socket.emit("morse-press");
+    });
+    btn.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      socket.emit("morse-release");
+    });
+
+    // Receber eventos
+    socket.on("morse-on", () => {
+      indicator.style.background = "red";
+      startTone();
+    });
+
+    socket.on("morse-off", () => {
+      indicator.style.background = "gray";
+      stopTone();
+    });
+  </script>
+</body>
+
+</html>
